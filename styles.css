@@ -1,0 +1,169 @@
+#page-local-studentprogress-index .monitoreo-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+
+.titulo {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.progreso-general {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.barra-progreso {
+    background: #e0e0e0;
+    width: 300px;
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progreso {
+    background: #69c0ff;
+    height: 100%;
+}
+
+.porcentaje {
+    font-weight: bold;
+}
+
+.leyenda-estados {
+    margin-bottom: 20px;
+}
+
+.estados span {
+    margin-right: 15px;
+}
+
+.circulo {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.azul { background-color: #8f8f8f; }
+.amarillo { background-color: #ffc107; }
+.verde { background-color: #28a745; }
+.rojo { background-color: #dc3545; }
+
+.filtro {
+    margin-bottom: 20px;
+}
+
+.filtro select, .filtro button {
+    margin-left: 10px;
+    padding: 5px 10px;
+}
+
+.tabla-scroll {
+    overflow-x: auto;
+}
+
+.tabla-progreso {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+.tabla-progreso th,
+.tabla-progreso td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    background-color: #f9f9f9;
+}
+
+.btn-configurar {
+    margin-top: 20px;
+    background-color: #0073aa;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.btn-configurar:hover {
+    background-color: #005f8d;
+}
+
+.titulo {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #000;
+    padding-bottom: 5px;
+}
+
+.descripcion {
+    background-color: #e0e0e0;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    font-size: 15px;
+    color: #333;
+    line-height: 1.5;
+    max-width: 700px;
+}
+
+.monitoreo-container {
+    font-family: Arial, sans-serif;
+    max-width: 700px;
+    padding: 20px;
+}
+
+.filtro {
+    margin-bottom: 25px;
+}
+
+.filtro p {
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.filtro label {
+    display: inline-block;
+    margin-right: 20px;
+    font-size: 16px;
+}
+
+.barra-progreso.mini {
+    width: 100px;
+    height: 10px;
+    background-color: #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 2px;
+}
+
+.barra-progreso.mini .progreso {
+    height: 100%;
+    background-color: #4caf50;
+    transition: width 0.3s ease;
+}
+
+.porcentaje-mini {
+    font-size: 0.8em;
+}
+
+
+.studentprogress-tabs .tab {
+    padding: 10px;
+    margin-right: 10px;
+    background-color: lightgray;
+    text-decoration: none;
+}
+.studentprogress-tabs .tab.selected {
+    background-color: #4db8ff;
+    font-weight: bold;
+}

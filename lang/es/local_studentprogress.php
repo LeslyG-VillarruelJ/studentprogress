@@ -1,0 +1,24 @@
+<?php
+$string['pluginname'] = 'Progreso del Estudiante';
+$string['configuration'] = 'Configuración';
+$string['duration'] = 'Duración de la notificación';
+$string['alerts'] = 'Número de alertas';
+$string['saveconfig'] = 'Guardar configuración';
+$string['configsaved'] = '¡Configuración guardada exitosamente!';
+$string['monitoring'] = 'Monitoreo';
+$string['overallprogress'] = 'Progreso General';
+$string['states'] = 'Estados';
+$string['topic'] = 'Tema';
+$string['all'] = 'Todos';
+$string['filter'] = 'Filtrar';
+$string['student'] = 'Estudiante';
+$string['noregistered'] = 'No registrado';
+$string['resolved'] = 'Resuelto';
+$string['inprogress'] = 'En progreso';
+$string['unresolved'] = 'Por resolver';
+$string['studentnotificationconfig'] = 'Configuración Notificaciones Estudiante';
+$string['studentnotificationinfotext'] = 'Este apartado es para configuración del tiempo de notificación al estudiante en el bloque, con la finalidad de motivar para que continúe resolviendo las actividades del curso.';
+$string['seconds'] = 'segundos';
+$string['select'] = 'Seleccione';
+$string['resourceprogress'] = 'Progreso por recursos';
+$string['confignotsaved'] = = '¡Configuración no guardada!';
