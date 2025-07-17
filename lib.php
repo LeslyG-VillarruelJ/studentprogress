@@ -5,7 +5,7 @@ defined('MOODLE_INTERNAL') || die();
 
 // Verifica y crea las tablas necesarias para el plugin
 
-function local_versionuno_check_tables() {
+function local_studentprogress_check_tables() {
     global $DB;
 
     $dbman = $DB->get_manager();
@@ -133,7 +133,7 @@ function local_studentprogress_extend_navigation_course($navigation, $course, $c
     global $PAGE, $USER;
 
     // Verificar tablas plugin
-    local_versionuno_check_tables();
+    local_studentprogress_check_tables();
 
     if (has_capability('local/studentprogress:view', $context)) {
         $url = new moodle_url('/local/studentprogress/index.php', ['id' => $course->id]);
