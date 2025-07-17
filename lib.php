@@ -130,6 +130,11 @@ function local_versionuno_check_tables() {
  * @param context_course $context
  */
 function local_studentprogress_extend_navigation_course($navigation, $course, $context) {
+    global $PAGE, $USER;
+
+    // Verificar tablas plugin
+    local_versionuno_check_tables();
+
     if (has_capability('local/studentprogress:view', $context)) {
         $url = new moodle_url('/local/studentprogress/index.php', ['id' => $course->id]);
         $navigation->add(
