@@ -8,6 +8,7 @@ require_once($CFG->dirroot.'/local/studentprogress/classes/form/configuration_fo
 $courseid = required_param('id', PARAM_INT);
 $active_tab = optional_param('tab', 'monitoring', PARAM_ALPHA);
 
+
 require_login($courseid);
 $context = context_course::instance($courseid);
 $PAGE->set_context($context);
@@ -18,6 +19,7 @@ $PAGE->set_heading(format_string(get_course($courseid)->fullname));
 $tabs = [
     new tabobject('monitoring', new moodle_url('/local/studentprogress/index.php', ['id' => $courseid, 'tab' => 'monitoring']), get_string('monitoring', 'local_studentprogress')),
     new tabobject('configuration', new moodle_url('/local/studentprogress/index.php', ['id' => $courseid, 'tab' => 'configuration']), get_string('configuration', 'local_studentprogress')),
+    //new tabobject('testform', new moodle_url('/local/studentprogress/index.php', ['id' => $courseid, 'tab' => 'testform']), 'Test Form') // Etiqueta directa o get_string si la agregas al idioma
 ];
 
 echo $OUTPUT->header();
@@ -30,8 +32,10 @@ switch ($active_tab) {
     if ($mform->is_cancelled()) {
         redirect(new moodle_url('/local/studentprogress/index.php', ['id' => $courseid, 'tab' => 'monitoring']));
     } else if ($data = $mform->get_data()) {
+        debugging('Datos del formulario recibidos: ' . print_r($data, true));
         if ($mform->process_data($data)) {
             \core\notification::success(get_string('configsaved', 'local_studentprogress'));
+            redirect(new moodle_url('/local/studentprogress/index.php', ['id' => $courseid, 'tab' => 'monitoring']));
         } else {
             \core\notification::error(get_string('confignotsaved', 'local_studentprogress'));
         }
@@ -45,8 +49,6 @@ switch ($active_tab) {
 
         if ($mform->is_cancelled()) {
             redirect(new moodle_url('/local/studentprogress/index.php', ['id' => $courseid, 'tab' => 'monitoring']));
-        } else if ($data = $mform->get_data()) {
-            // No hay guardado, solo muestra visual
         }
 
         $mform->display();
