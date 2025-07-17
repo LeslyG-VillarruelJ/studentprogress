@@ -21,4 +21,3 @@ $string['studentnotificationinfotext'] = 'This section is for configuring the st
 $string['seconds'] = 'seconds';
 $string['select'] = 'Select';
 $string['resourceprogress'] = 'Progress by resources';
-$string['confignotsaved'] = = 'Configuration not saved!';

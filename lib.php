@@ -13,14 +13,13 @@ defined('MOODLE_INTERNAL') || die();
 function local_studentprogress_extend_navigation_course($navigation, $course, $context) {
     if (has_capability('local/studentprogress:view', $context)) {
         $url = new moodle_url('/local/studentprogress/index.php', ['id' => $course->id]);
-
         $navigation->add(
-            get_string('pluginname', 'local_studentprogress'), // Texto del enlace
+            get_string('pluginname', 'local_studentprogress'),
             $url,
-            navigation_node::TYPE_SETTING,
+            navigation_node::TYPE_CUSTOM,
             null,
-            'studentprogress',
-            new pix_icon('i/report', '') // Icono opcional
+            null,
+            new pix_icon('i/report', '')
         );
     }
 }

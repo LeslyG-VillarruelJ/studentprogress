@@ -147,9 +147,9 @@
 }
 
 .barra-progreso.mini .progreso {
-    height: 100%;
+    height: auto;
     background-color: #4caf50;
-    transition: width 0.3s ease;
+    transition: width 0.3s auto;
 }
 
 .porcentaje-mini {
