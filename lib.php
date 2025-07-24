@@ -70,6 +70,36 @@ function local_studentprogress_check_tables()
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     }
 
+    // 5. Tabla user_section_grades_plg
+    if (!$dbman->table_exists('user_section_grades_plg')) {
+        $DB->execute("CREATE TABLE {user_section_grades_plg} (
+            id BIGINT(10) NOT NULL AUTO_INCREMENT,
+            id_section BIGINT(10) NOT NULL,
+            id_user_learning BIGINT(10) NOT NULL,
+            grade DECIMAL(5,2) NOT NULL DEFAULT 0,
+            PRIMARY KEY (id),
+            INDEX idx_section (id_section),
+            INDEX idx_user_learning (id_user_learning),
+            FOREIGN KEY (id_section) REFERENCES {course_sections}(id) ON DELETE RESTRICT,
+            FOREIGN KEY (id_user_learning) REFERENCES {user_learning_plg}(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
+
+    // 6. Tabla user_section_status_plg
+    if (!$dbman->table_exists('user_section_status_plg')) {
+        $DB->execute("CREATE TABLE {user_section_status_plg} (
+            id BIGINT(10) NOT NULL AUTO_INCREMENT,
+            id_section BIGINT(10) NOT NULL,
+            id_user_learning BIGINT(10) NOT NULL,
+            status VARCHAR(50) NOT NULL DEFAULT '',
+            PRIMARY KEY (id),
+            INDEX idx_section (id_section),
+            INDEX idx_user_learning (id_user_learning),
+            FOREIGN KEY (id_section) REFERENCES {course_sections}(id) ON DELETE RESTRICT,
+            FOREIGN KEY (id_user_learning) REFERENCES {user_learning_plg}(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    }
+
     // 7. Tabla course_duration_plg
     if (!$dbman->table_exists('course_duration_plg')) {
         $DB->execute("CREATE TABLE {course_duration_plg} (

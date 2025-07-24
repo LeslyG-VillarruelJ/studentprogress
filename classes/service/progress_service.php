@@ -1,22 +1,18 @@
 <?php
-
 namespace local_studentprogress\service;
 
 defined('MOODLE_INTERNAL') || die();
 
-class progress_service
-{
+class progress_service {
     private $courseid;
     private $context;
 
-    public function __construct(int $courseid)
-    {
+    public function __construct(int $courseid) {
         $this->courseid = $courseid;
         $this->context = \context_course::instance($courseid);
     }
 
-    public function get_visible_sections(): array
-    {
+    public function get_visible_sections(): array {
         global $DB;
 
         try {
@@ -28,8 +24,7 @@ class progress_service
         }
     }
 
-    public function get_students(): array
-    {
+    public function get_students(): array {
         try {
             $users = get_enrolled_users($this->context, '', 0, 'u.id, u.firstname, u.lastname');
             return array_filter($users, fn($user) => !has_capability('moodle/course:update', $this->context, $user));
@@ -39,8 +34,7 @@ class progress_service
         }
     }
 
-    public function get_progress(array $students, array $sections): array
-    {
+    public function get_progress(array $students, array $sections): array {
         global $DB;
 
         $progress = [];
@@ -105,22 +99,16 @@ class progress_service
         return $progress;
     }
 
-    public static function map_status_to_color(string $status): string
-    {
+    public static function map_status_to_color(string $status): string {
         switch (strtolower($status)) {
-            case 'resuelto':
-                return 'verde';
-            case 'en progreso':
-                return 'amarillo';
-            case 'por resolver':
-                return 'rojo';
-            default:
-                return 'azul';
+            case 'resuelto': return 'verde';
+            case 'en progreso': return 'amarillo';
+            case 'por resolver': return 'rojo';
+            default: return 'azul';
         }
     }
 
-    public function get_course_progress(array $students): float
-    {
+    public function get_course_progress(array $students): float {
         global $DB;
 
         $studentcount = count($students);
@@ -173,6 +161,7 @@ class progress_service
                 $pro = ($totalresources > 0) ? round(($finishresources * 100) / $totalresources) : 0;
 
                 $progress[] = $pro;
+
             } catch (\dml_exception $e) {
                 debugging("Error en get_course_progress(): " . $e->getMessage(), DEBUG_DEVELOPER);
                 $progress[] = 0;
@@ -182,8 +171,7 @@ class progress_service
         return array_sum($progress) / $studentcount;
     }
 
-    public function get_student_progress_resources(array $students): array
-    {
+    public function get_student_progress_resources(array $students): array {
         global $DB;
 
         $progressresources = [];
@@ -232,6 +220,7 @@ class progress_service
                 $pro = ($totalresources > 0) ? round(($finishresources * 100) / $totalresources) : 0;
 
                 $progressresources[$userid] = $pro;
+
             } catch (\dml_exception $e) {
                 debugging("Error en get_student_progress_resources(): " . $e->getMessage(), DEBUG_DEVELOPER);
                 $progressresources[$s->id] = 0;
