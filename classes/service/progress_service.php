@@ -1,18 +1,22 @@
 <?php
+
 namespace local_studentprogress\service;
 
 defined('MOODLE_INTERNAL') || die();
 
-class progress_service {
+class progress_service
+{
     private $courseid;
     private $context;
 
-    public function __construct(int $courseid) {
+    public function __construct(int $courseid)
+    {
         $this->courseid = $courseid;
         $this->context = \context_course::instance($courseid);
     }
 
-    public function get_visible_sections(): array {
+    public function get_visible_sections(): array
+    {
         global $DB;
 
         try {
@@ -24,7 +28,8 @@ class progress_service {
         }
     }
 
-    public function get_students(): array {
+    public function get_students(): array
+    {
         try {
             $users = get_enrolled_users($this->context, '', 0, 'u.id, u.firstname, u.lastname');
             return array_filter($users, fn($user) => !has_capability('moodle/course:update', $this->context, $user));
@@ -34,61 +39,77 @@ class progress_service {
         }
     }
 
-    public function get_progress(array $students, array $sections): array {
+    private function get_section_status($userid, $sectionid)
+    {
+        global $DB;
+
+        try {
+            $sql1 = "SELECT 
+                        (SELECT COUNT(*) 
+                             FROM {course_modules} cm
+                             JOIN {user_learning_module_plg} ulcm ON cm.id = ulcm.id_learning_course_module
+                             JOIN {user} u ON ulcm.id_user = u.id
+                             WHERE ulcm.id_user = :userid1 AND cm.course = :courseid1 AND cm.section = :sectionid1
+                        ) AS total_asignados,
+
+                        (SELECT COUNT(*) 
+                             FROM {course_modules_completion} cmc
+                             JOIN {course_modules} cm ON cm.id = cmc.coursemoduleid
+                             JOIN {user} u ON cmc.userid = u.id
+                             WHERE cmc.userid = :userid2 AND cm.course = :courseid2 AND cmc.completionstate = 1 AND cm.section = :sectionid2
+                        ) AS total_completados;
+                    ";
+
+            $params1 = [
+                'userid1' => $userid,
+                'courseid1' => $this->courseid,
+                'userid2' => $userid,
+                'courseid2' => $this->courseid,
+                'sectionid1' => $sectionid,
+                'sectionid2' => $sectionid
+            ];
+
+            debugging('Antes de la consulta', DEBUG_DEVELOPER);
+
+            $sectionprogress = $DB->get_record_sql($sql1, $params1);
+
+            $finishresources = isset($sectionprogress->total_completados) ? (int)$sectionprogress->total_completados : 0;
+            $totalresources = isset($sectionprogress->total_asignados) ? (int)$sectionprogress->total_asignados : 0;
+
+            return [$finishresources, $totalresources];
+        } catch (Exception $e) {
+            debugging('Error en get_user_sections(): ' . $e->getMessage(), DEBUG_DEVELOPER);
+            return null;
+        }
+    }
+
+    public function get_progress_by_section(array $students, array $sections): array
+    {
         global $DB;
 
         $progress = [];
+        $color = 'gris';
 
         foreach ($students as $s) {
             foreach ($sections as $sec) {
                 try {
                     $userid = $s->id;
                     $sectionid = $sec->id;
-                    $sql = "SELECT 
-                                (SELECT COUNT(*) 
-                                FROM {learning_course_module_plg} lcm
-                                JOIN {course_modules} cm ON cm.id = lcm.id_course_module
-                                JOIN {user_learning_module_plg} ulcm ON lcm.id_learning = ulcm.id_learning_course_module
-                                JOIN {user_learning_plg} ul ON ulcm.id_user_learning = ul.id
-                                JOIN {user u ON ul.id_user} = u.id
-                                WHERE ulcm.id_user_learning = (
-                                    SELECT ul.id 
-                                    FROM {user_learning_plg} ul 
-                                    JOIN {user} u ON ul.id_user = u.id 
-                                    WHERE u.id = :userid1
-                                )
-                                AND cm.course = :courseid1 AND cm.section = :sectionid) AS total_asignados,
+                    list($finishresources, $totalresources) = $this->get_section_status($userid, $sectionid);
 
-                                (SELECT COUNT(*) 
-                                FROM {course_modules_completion} cmc
-                                JOIN {learning_course_module_plg} lcm ON lcm.id_course_module = cmc.coursemoduleid
-                                JOIN {course_modules} cm ON cm.id = lcm.id_course_module
-                                JOIN {user_learning_module_plg} ulcm ON lcm.id_learning = ulcm.id_learning_course_module
-                                JOIN {user_learning_plg} ul ON ulcm.id_user_learning = ul.id
-                                JOIN {user} u ON ul.id_user = u.id
-                                WHERE cmc.userid = :userid2 AND cm.course = :courseid2 AND cm.section = :sectionid AND cmc.completionstate = 1) AS total_completados
-                            ";
-
-                    $params = [
-                        'userid1' => $userid,
-                        'courseid1' => $this->courseid,
-                        'userid2' => $userid,
-                        'courseid2' => $this->courseid,
-                        'sectionid' => $sectionid
-                    ];
-
-                    $studentprogress = $DB->get_record_sql($sql, $params);
-
-                    $finishresources = (int)($studentprogress->total_completados ?? 0);
-                    $totalresources = (int)($studentprogress->total_asignados ?? 0);
-
-                    if ($finishresources === 0) {
-                        $progress[$userid][$sectionid] = 'por resolver';
-                    } else if ($finishresources < $totalresources) {
-                        $progress[$userid][$sectionid] = 'en progreso';
+                    if ($totalresources === 0) {
+                        $color  = 'gris';
                     } else {
-                        $progress[$userid][$sectionid] = 'resuelto';
+                        if ($totalresources === $finishresources) {
+                            $color  = 'verde';
+                        } else if ($totalresources > $finishresources && $finishresources >= 1) {
+                            $color  = 'amarillo';
+                        } else {
+                            $color  = 'rojo';
+                        }
                     }
+
+                    $progress[$userid][$sectionid] = $color;
                 } catch (\dml_exception $e) {
                     debugging("Error en get_progress(): " . $e->getMessage(), DEBUG_DEVELOPER);
                     return [];
@@ -99,16 +120,41 @@ class progress_service {
         return $progress;
     }
 
-    public static function map_status_to_color(string $status): string {
-        switch (strtolower($status)) {
-            case 'resuelto': return 'verde';
-            case 'en progreso': return 'amarillo';
-            case 'por resolver': return 'rojo';
-            default: return 'azul';
+    public function get_student_progress_resources(array $students, array $sections): array
+    {
+        global $DB;
+
+        $progressresources = [];
+
+        foreach ($students as $s) {
+
+            try {
+                $addfinishresources = 0;
+                $addtotalresources = 0;
+
+                foreach ($sections as $sec) {
+                    $userid = $s->id;
+                    $sectionid = $sec->id;
+                    list($finishresources, $totalresources) = $this->get_section_status($userid, $sectionid);
+
+                    $addfinishresources += $finishresources;
+                    $addtotalresources += $totalresources;
+                }
+
+                $progressresources[$userid] = ($addtotalresources > 0) ? round(($addfinishresources * 100) / $addtotalresources) : 0;
+
+                print_object('usuario ' . $userid . ' : ' . $progressresources[$userid]);
+            } catch (\dml_exception $e) {
+                debugging("Error en get_student_progress_resources(): " . $e->getMessage(), DEBUG_DEVELOPER);
+                $progressresources[$s->id] = 0;
+            }
         }
+        print_object($progressresources);
+        return $progressresources;
     }
 
-    public function get_course_progress(array $students): float {
+    public function get_course_progress_resources(array $students, array $sections): float
+    {
         global $DB;
 
         $studentcount = count($students);
@@ -116,117 +162,20 @@ class progress_service {
             return 0.0;
         }
 
-        $progress = [];
+        $sumprogress = 0;
 
-        foreach ($students as $s) {
-            try {
+
+        try {
+            $studentprogress = $this->get_student_progress_resources($students, $sections);
+
+            foreach ($students as $s) {
                 $userid = $s->id;
-                $sql = "SELECT 
-                            (SELECT COUNT(*) 
-                             FROM {learning_course_module_plg} lcm
-                             JOIN {course_modules} cm ON cm.id = lcm.id_course_module
-                             JOIN {user_learning_module_plg} ulcm ON lcm.id_learning = ulcm.id_learning_course_module
-                             JOIN {user_learning_plg} ul ON ulcm.id_user_learning = ul.id
-                             JOIN {user u ON ul.id_user} = u.id
-                             WHERE ulcm.id_user_learning = (
-                                 SELECT ul.id 
-                                 FROM {user_learning_plg} ul 
-                                 JOIN {user} u ON ul.id_user = u.id 
-                                 WHERE u.id = :userid1
-                             )
-                             AND cm.course = :courseid1) AS total_asignados,
-
-                            (SELECT COUNT(*) 
-                             FROM {course_modules_completion} cmc
-                             JOIN {learning_course_module_plg} lcm ON lcm.id_course_module = cmc.coursemoduleid
-                             JOIN {course_modules} cm ON cm.id = lcm.id_course_module
-                             JOIN {user_learning_module_plg} ulcm ON lcm.id_learning = ulcm.id_learning_course_module
-                             JOIN {user_learning_plg} ul ON ulcm.id_user_learning = ul.id
-                             JOIN {user} u ON ul.id_user = u.id
-                             WHERE cmc.userid = :userid2 AND cm.course = :courseid2 AND cmc.completionstate = 1) AS total_completados
-                        ";
-
-                $params = [
-                    'userid1' => $userid,
-                    'courseid1' => $this->courseid,
-                    'userid2' => $userid,
-                    'courseid2' => $this->courseid
-                ];
-
-                $studentprogress = $DB->get_record_sql($sql, $params);
-
-                $finishresources = (int)($studentprogress->total_completados ?? 0);
-                $totalresources = (int)($studentprogress->total_asignados ?? 0);
-
-                $pro = ($totalresources > 0) ? round(($finishresources * 100) / $totalresources) : 0;
-
-                $progress[] = $pro;
-
-            } catch (\dml_exception $e) {
-                debugging("Error en get_course_progress(): " . $e->getMessage(), DEBUG_DEVELOPER);
-                $progress[] = 0;
+                $sumprogress += $studentprogress[$s->id] ?? 0;
             }
+        } catch (\dml_exception $e) {
+            debugging("Error en get_course_progress(): " . $e->getMessage(), DEBUG_DEVELOPER);
         }
 
-        return array_sum($progress) / $studentcount;
-    }
-
-    public function get_student_progress_resources(array $students): array {
-        global $DB;
-
-        $progressresources = [];
-
-        foreach ($students as $s) {
-            try {
-                $userid = $s->id;
-
-                $sql = "SELECT 
-                            (SELECT COUNT(*) 
-                             FROM {learning_course_module_plg} lcm
-                             JOIN {course_modules} cm ON cm.id = lcm.id_course_module
-                             JOIN {user_learning_module_plg} ulcm ON lcm.id_learning = ulcm.id_learning_course_module
-                             JOIN {user_learning_plg} ul ON ulcm.id_user_learning = ul.id
-                             JOIN {user u ON ul.id_user} = u.id
-                             WHERE ulcm.id_user_learning = (
-                                 SELECT ul.id 
-                                 FROM {user_learning_plg} ul 
-                                 JOIN {user} u ON ul.id_user = u.id 
-                                 WHERE u.id = :userid1
-                             )
-                             AND cm.course = :courseid1) AS total_asignados,
-
-                            (SELECT COUNT(*) 
-                             FROM {course_modules_completion} cmc
-                             JOIN {learning_course_module_plg} lcm ON lcm.id_course_module = cmc.coursemoduleid
-                             JOIN {course_modules} cm ON cm.id = lcm.id_course_module
-                             JOIN {user_learning_module_plg} ulcm ON lcm.id_learning = ulcm.id_learning_course_module
-                             JOIN {user_learning_plg} ul ON ulcm.id_user_learning = ul.id
-                             JOIN {user} u ON ul.id_user = u.id
-                             WHERE cmc.userid = :userid2 AND cm.course = :courseid2 AND cmc.completionstate = 1) AS total_completados
-                        ";
-
-                $params = [
-                    'userid1' => $userid,
-                    'courseid1' => $this->courseid,
-                    'userid2' => $userid,
-                    'courseid2' => $this->courseid
-                ];
-
-                $studentprogress = $DB->get_record_sql($sql, $params);
-
-                $finishresources = (int)($studentprogress->total_completados ?? 0);
-                $totalresources = (int)($studentprogress->total_asignados ?? 0);
-
-                $pro = ($totalresources > 0) ? round(($finishresources * 100) / $totalresources) : 0;
-
-                $progressresources[$userid] = $pro;
-
-            } catch (\dml_exception $e) {
-                debugging("Error en get_student_progress_resources(): " . $e->getMessage(), DEBUG_DEVELOPER);
-                $progressresources[$s->id] = 0;
-            }
-        }
-
-        return $progressresources;
+        return $sumprogress / $studentcount;
     }
 }

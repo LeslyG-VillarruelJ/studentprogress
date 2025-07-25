@@ -29,9 +29,9 @@ class monitoring_form extends \moodleform
         // Obtener datos
         $students = $service->get_students();
         $sections = $service->get_visible_sections();
-        $statuses = $service->get_progress($students, $sections);
-        $progressresources = $service->get_student_progress_resources($students);
-        $overallprogress = min(100, max(0, round($service->get_course_progress($students))));
+        $statuses = $service->get_progress_by_section($students, $sections);
+        $progressresources = $service->get_student_progress_resources($students, $sections);
+        $overallprogress = min(100, max(0, round($service->get_course_progress_resources($students, $sections))));
 
         // Script para filtrar
         $html = '<script>
@@ -68,7 +68,7 @@ class monitoring_form extends \moodleform
             <h2 class="titulo">' . get_string('monitoring', 'local_studentprogress') . '</h2>
 
             <div class="progreso-general">
-                <strong>' . get_string('overallprogress', 'local_studentprogress') . '</strong>
+                <strong style="font-size: 16px;">' . get_string('overallprogress', 'local_studentprogress') . '</strong>
                 <div class="barra-progreso">
                     <div class="progreso" style="width: ' . $overallprogress . '%;"></div>
                 </div>
@@ -76,7 +76,7 @@ class monitoring_form extends \moodleform
             </div>
 
             <div class="leyenda-estados">
-                <strong>' . get_string('states', 'local_studentprogress') . '</strong>
+                <strong style="font-size: 16px;">' . get_string('states', 'local_studentprogress') . '</strong><br/><br/>
                 <div class="estados">
                     <span><span class="circulo azul"></span> ' . get_string('noregistered', 'local_studentprogress') . '</span>
                     <span><span class="circulo amarillo"></span> ' . get_string('inprogress', 'local_studentprogress') . '</span>
@@ -117,21 +117,22 @@ class monitoring_form extends \moodleform
                         <tbody>';
         foreach ($students as $student) {
             $html .= '<tr data-student-id="' . $student->id . '">
-                                <td>' . fullname($student) . '</td>';
+                                <td style="width: 500px;">' . fullname($student) . '</td>';
 
             $progress = $progressresources[$student->id] ?? 0;
 
-            $html .= '<td>
-                                    <div class="barra-progreso mini">
-                                        <div class="progreso" style="width: ' . $progress . '%;"></div>
-                                    </div>
-                                    <span class="porcentaje-mini">' . $progress . '%</span>
-                                </td>';
+            $html .= '<td style="width: 300px;">
+                        <div class="progreso-mini">
+                            <div class="barra-mini">
+                                <div class="progreso" style="width:' . $progress . '%;"></div>
+                            </div>
+                            <span class="porcentaje">' . $progress . '%</span>
+                        </div>
+                    </td>';
 
             foreach ($sections as $sec) {
-                $status = $statuses[$student->id][$sec->id] ?? 'No registrado';
-                $color = $service->map_status_to_color($status);
-                $html .= '<td data-section-id="' . $sec->id . '">
+                $color = $statuses[$student->id][$sec->id];
+                $html .= '<td data-section-id="' . $sec->id . '" style="width: 300px;">
                                     <span class="circulo ' . $color . '"></span>
                                 </td>';
             }

@@ -4,7 +4,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 // Verifica y crea las tablas necesarias para el plugin
-
 function local_studentprogress_check_tables()
 {
     global $DB;
@@ -18,7 +17,7 @@ function local_studentprogress_check_tables()
             name VARCHAR(100) NOT NULL,
             PRIMARY KEY (id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-        
+
         // Insertar datos iniciales
         $DB->insert_records('learning_type_plg', [
             (object)['name' => 'Visual'],
@@ -43,7 +42,7 @@ function local_studentprogress_check_tables()
 
     // 4. Tabla learning_course_module_plg
     if (!$dbman->table_exists('learning_course_module_plg')) {
-    $DB->execute("CREATE TABLE {learning_course_module_plg} (
+        $DB->execute("CREATE TABLE {learning_course_module_plg} (
         id BIGINT(10) NOT NULL AUTO_INCREMENT,
         id_course_modules BIGINT(10) NOT NULL COMMENT 'ID del módulo del curso',
         id_learning INT(10) NOT NULL COMMENT 'ID del tipo de aprendizaje',       
@@ -56,11 +55,11 @@ function local_studentprogress_check_tables()
         FOREIGN KEY (id_learning)                                               
             REFERENCES {learning_type_plg}(id) ON DELETE RESTRICT
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Relación entre módulos del curso y tipos de aprendizaje'");
-}
+    }
 
     // 4. Tabla user_learning_module_plg
     if (!$dbman->table_exists('user_learning_module_plg')) {
-    $DB->execute("CREATE TABLE {user_learning_module_plg} (
+        $DB->execute("CREATE TABLE {user_learning_module_plg} (
         id BIGINT(10) NOT NULL AUTO_INCREMENT,
         id_user BIGINT(10) NOT NULL,
         id_learning_course_module BIGINT(10) NOT NULL,  
@@ -71,7 +70,7 @@ function local_studentprogress_check_tables()
         FOREIGN KEY (id_user) REFERENCES {user}(id) ON UPDATE CASCADE ON DELETE RESTRICT,
         FOREIGN KEY (id_learning_course_module) REFERENCES {course_modules}(id) ON UPDATE CASCADE ON DELETE RESTRICT  
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-
+    }
     // 5. Tabla course_duration_plg
     if (!$dbman->table_exists('course_duration_plg')) {
         $DB->execute("CREATE TABLE {course_duration_plg} (
