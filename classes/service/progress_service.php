@@ -45,19 +45,20 @@ class progress_service
 
         try {
             $sql1 = "SELECT 
-                        (SELECT COUNT(*) 
+                        (SELECT COUNT(*)
                              FROM {course_modules} cm
                              JOIN {user_learning_module_plg} ulcm ON cm.id = ulcm.id_learning_course_module
                              JOIN {user} u ON ulcm.id_user = u.id
                              WHERE ulcm.id_user = :userid1 AND cm.course = :courseid1 AND cm.section = :sectionid1
                         ) AS total_asignados,
 
-                        (SELECT COUNT(*) 
+                        (SELECT COUNT(*)
                              FROM {course_modules_completion} cmc
                              JOIN {course_modules} cm ON cm.id = cmc.coursemoduleid
-                             JOIN {user} u ON cmc.userid = u.id
-                             WHERE cmc.userid = :userid2 AND cm.course = :courseid2 AND cmc.completionstate = 1 AND cm.section = :sectionid2
-                        ) AS total_completados;
+                             JOIN {user_learning_module_plg} ulcm ON cmc.coursemoduleid = ulcm.id_learning_course_module
+                             JOIN {user} u ON ulcm.id_user = u.id
+                             WHERE u.id = :userid2 AND cmc.userid = :userid3 AND cm.course = 3 AND cmc.completionstate = 1 AND cm.section = :sectionid2
+                        ) AS total_completados;;
                     ";
 
             $params1 = [
@@ -66,6 +67,7 @@ class progress_service
                 'userid2' => $userid,
                 'courseid2' => $this->courseid,
                 'sectionid1' => $sectionid,
+                'userid3' => $userid,
                 'sectionid2' => $sectionid
             ];
 
@@ -98,7 +100,7 @@ class progress_service
                     list($finishresources, $totalresources) = $this->get_section_status($userid, $sectionid);
 
                     if ($totalresources === 0) {
-                        $color  = 'gris';
+                        $color  = 'azul';
                     } else {
                         if ($totalresources === $finishresources) {
                             $color  = 'verde';
@@ -142,14 +144,11 @@ class progress_service
                 }
 
                 $progressresources[$userid] = ($addtotalresources > 0) ? round(($addfinishresources * 100) / $addtotalresources) : 0;
-
-                print_object('usuario ' . $userid . ' : ' . $progressresources[$userid]);
             } catch (\dml_exception $e) {
                 debugging("Error en get_student_progress_resources(): " . $e->getMessage(), DEBUG_DEVELOPER);
                 $progressresources[$s->id] = 0;
             }
         }
-        print_object($progressresources);
         return $progressresources;
     }
 
