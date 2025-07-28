@@ -19,7 +19,6 @@ $PAGE->set_heading(format_string(get_course($courseid)->fullname));
 $tabs = [
     new tabobject('monitoring', new moodle_url('/local/studentprogress/index.php', ['id' => $courseid, 'tab' => 'monitoring']), get_string('monitoring', 'local_studentprogress')),
     new tabobject('configuration', new moodle_url('/local/studentprogress/index.php', ['id' => $courseid, 'tab' => 'configuration']), get_string('configuration', 'local_studentprogress')),
-    //new tabobject('testform', new moodle_url('/local/studentprogress/index.php', ['id' => $courseid, 'tab' => 'testform']), 'Test Form') // Etiqueta directa o get_string si la agregas al idioma
 ];
 
 echo $OUTPUT->header();
@@ -32,7 +31,6 @@ switch ($active_tab) {
     if ($mform->is_cancelled()) {
         redirect(new moodle_url('/local/studentprogress/index.php', ['id' => $courseid, 'tab' => 'monitoring']));
     } else if ($data = $mform->get_data()) {
-        debugging('Datos del formulario recibidos: ' . print_r($data, true));
         if ($mform->process_data($data)) {
             \core\notification::success(get_string('configsaved', 'local_studentprogress'));
             redirect(new moodle_url('/local/studentprogress/index.php', ['id' => $courseid, 'tab' => 'monitoring']));
